@@ -14,18 +14,16 @@
 
 void MainWindow::runUnitTests()
 {
-    qDebug() << "========== МОДУЛЬНЫЕ ТЕСТЫ ==========";
+    qDebug() << "========== UNIT TESTS ==========";
     bool allOk = true;
 
-    /* новыйФайл() */
     ui->textEdit->setPlainText("abc");
     currentFile = "dummy.txt";
     newFile();
     bool ok = ui->textEdit->toPlainText().isEmpty() && currentFile.isEmpty();
-    qDebug() << "новыйФайл:" << (ok ? "OK" : "ОШИБКА");
+    qDebug() << "newFile:" << (ok ? "OK" : "FAIL");
     allOk &= ok;
 
-    /* сохранитьФайл() + открытьФайл() */
     QString tmpName;
     {
         QTemporaryFile tmp;
@@ -41,10 +39,10 @@ void MainWindow::runUnitTests()
     f.open(QIODevice::ReadOnly | QFile::Text);
     ui->textEdit->setPlainText(QTextStream(&f).readAll());
     ok = (ui->textEdit->toPlainText() == "Hello");
-    qDebug() << "сохранитьФайл/открытьФайл:" << (ok ? "OK" : "ОШИБКА");
+    qDebug() << "saveFile/openFile:" << (ok ? "OK" : "FAIL");
     allOk &= ok;
 
-    /* копировать / вырезать / вставить */
+
     ui->textEdit->setPlainText("12345");
     QTextCursor c = ui->textEdit->textCursor();
     c.setPosition(1);
@@ -53,37 +51,37 @@ void MainWindow::runUnitTests()
 
     copyText();
     ok = (QApplication::clipboard()->text() == "234");
-    qDebug() << "копироватьТекст:" << (ok ? "OK" : "ОШИБКА");
+    qDebug() << "copyText:" << (ok ? "OK" : "FAIL");
     allOk &= ok;
 
     cutText();
     ok = (QApplication::clipboard()->text() == "234") &&
          (ui->textEdit->toPlainText() == "15");
-    qDebug() << "вырезатьТекст:" << (ok ? "OK" : "ОШИБКА");
+    qDebug() << "cutText:" << (ok ? "OK" : "FAIL");
     allOk &= ok;
 
-    // вставляем обратно
+
     c = ui->textEdit->textCursor();
     pasteText();
     ok = (ui->textEdit->toPlainText() == "12345");
-    qDebug() << "вставитьТекст:" << (ok ? "OK" : "ОШИБКА");
+    qDebug() << "pasteText:" << (ok ? "OK" : "FAIL");
     allOk &= ok;
 
-    /* добавитьМаркеры */
+
     ui->textEdit->setPlainText("a\nb\nc");
     ui->textEdit->selectAll();
     addMarkers();
     ok = (ui->textEdit->toPlainText() == "- a\n- b\n- c");
-    qDebug() << "добавитьМаркеры:" << (ok ? "OK" : "ОШИБКА");
+    qDebug() << "addMarkers:" << (ok ? "OK" : "FAIL");
     allOk &= ok;
 
-    /* отступТекст (4 пробела) */
+
     ui->textEdit->setPlainText("x\ny");
     ui->textEdit->selectAll();
     int spaces = 4;
     QString indent(spaces, ' ');
     {
-        // имитируем ввод пользователя
+
         QTextCursor cur = ui->textEdit->textCursor();
         int start = cur.selectionStart(), end = cur.selectionEnd();
         cur.beginEditBlock();
@@ -96,52 +94,51 @@ void MainWindow::runUnitTests()
         cur.endEditBlock();
     }
     ok = ui->textEdit->toPlainText().startsWith(indent);
-    qDebug() << "отступТекст:" << (ok ? "OK" : "ОШИБКА");
+    qDebug() << "indentText:" << (ok ? "OK" : "FAIL");
     allOk &= ok;
 
-    /* выровнятьВлево / Поцентру / Вправо */
     ui->textEdit->setPlainText("foo");
     ui->textEdit->selectAll();
     alignCenter();
     ok = (ui->textEdit->alignment() & Qt::AlignHCenter);
-    qDebug() << "выровнятьПоцентру:" << (ok ? "OK" : "ОШИБКА");
+    qDebug() << "alignCenter:" << (ok ? "OK" : "FAIL");
     allOk &= ok;
 
     alignRight();
     ok = (ui->textEdit->alignment() & Qt::AlignRight);
-    qDebug() << "выровнятьВправо:" << (ok ? "OK" : "ОШИБКА");
+    qDebug() << "alignRight:" << (ok ? "OK" : "FAIL");
     allOk &= ok;
 
     alignLeft();
     ok = (ui->textEdit->alignment() & Qt::AlignLeft);
-    qDebug() << "выровнятьВлево:" << (ok ? "OK" : "ОШИБКА");
+    qDebug() << "alignLeft:" << (ok ? "OK" : "FAIL");
     allOk &= ok;
 
-    /* опрограмме / сменитьШрифт / сменитьЦвет / выход */
+
     about();
     changeFont();
     changeColor();
-    qDebug() << "опрограмме / сменитьШрифт / сменитьЦвет: OK (без проверки)";
+    qDebug() << "about / changeFont / changeColor: OK (not asserted)";
 
-    qDebug() << "========== РЕЗУЛЬТАТ ==========";
-    qDebug() << (allOk ? "ВСЕ ТЕСТЫ ПРОЙДЕНЫ" : "НЕКОТОРЫЕ ТЕСТЫ НЕ ПРОЙДЕНЫ");
+    qDebug() << "========== SUMMARY ==========";
+    qDebug() << (allOk ? "ALL TESTS PASSED" : "SOME TESTS FAILED");
 }
 
 void MainWindow::runFindIntegrationTests()
 {
-    qDebug() << "====== ИНТЕГРАЦИЯ ПОИСКА ======";
+    qDebug() << "====== FIND INTEGRATION ======";
     ui->textEdit->setPlainText("red green blue green");
     find();
-    // Счётчик срабатываний сигнала
+
     int count = 0;
     auto conn = connect(findDlg, &FindDialog::findRequested,
                         this, [&count](auto, auto){ ++count; });
-    // Эмулируем нажатие пользователем кнопки Next
+
     emit findDlg->findRequested("green", QTextDocument::FindFlags());
     QCoreApplication::processEvents();
     bool ok = (count == 1) &&
               (ui->textEdit->textCursor().selectedText() == "green");
-    qDebug() << "запросПоиска -> курсор перемещён:" << (ok ? "OK" : "ОШИБКА");
+    qDebug() << "findRequested -> cursor moved:" << (ok ? "OK" : "FAIL");
     disconnect(conn);
 }
 
@@ -168,9 +165,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->actionCenter, &QAction::triggered, this, &MainWindow::alignCenter);
     connect(ui->actionRight,  &QAction::triggered, this, &MainWindow::alignRight);
 
-    /* Тесты */
-    //runUnitTests();
-    //runFindIntegrationTests();
 }
 
 MainWindow::~MainWindow()
@@ -186,12 +180,12 @@ void MainWindow::newFile()
 
 void MainWindow::openFile()
 {
-    QString fileName = QFileDialog::getOpenFileName(this, "Открыть файл");
+    QString fileName = QFileDialog::getOpenFileName(this, "Open File");
     if (fileName.isEmpty()) return;
 
     QFile file(fileName);
     if (!file.open(QIODevice::ReadOnly | QFile::Text)) {
-        QMessageBox::warning(this, "Ошибка", "Не удалось открыть файл.");
+        QMessageBox::warning(this, "Error", "Cannot open file.");
         return;
     }
 
@@ -210,7 +204,7 @@ void MainWindow::saveFile()
 
     QFile file(currentFile);
     if (!file.open(QIODevice::WriteOnly | QFile::Text)) {
-        QMessageBox::warning(this, "Ошибка", "Не удалось сохранить файл.");
+        QMessageBox::warning(this, "Error", "Cannot save file.");
         return;
     }
 
@@ -221,7 +215,7 @@ void MainWindow::saveFile()
 
 void MainWindow::saveFileAs()
 {
-    QString fileName = QFileDialog::getSaveFileName(this, "Сохранить файл как");
+    QString fileName = QFileDialog::getSaveFileName(this, "Save File As");
     if (fileName.isEmpty()) return;
 
     currentFile = fileName;
@@ -250,7 +244,7 @@ void MainWindow::pasteText()
 
 void MainWindow::about()
 {
-    QMessageBox::about(this, "О программе", "Простой текстовый редактор");
+    QMessageBox::about(this, "About TextEditor", "Simple text editor for Aurora OS.");
 }
 
 void MainWindow::find()
@@ -261,8 +255,8 @@ void MainWindow::find()
                 this, [this](const QString &pattern, QTextDocument::FindFlags flags) {
                     lastMatch = ui->textEdit->textCursor();
                     if (!ui->textEdit->find(pattern, flags)) {
-                        QMessageBox::information(this, "Поиск",
-                                                 "Ничего не найдено...");
+                        QMessageBox::information(this, "Search",
+                                                 "No results...");
                     }
                 });
         connect(findDlg, &QDialog::finished,
@@ -279,7 +273,7 @@ void MainWindow::changeFont()
 {
     bool ok;
     QFont font = QFontDialog::getFont(&ok, ui->textEdit->font(), this,
-                                      "Изменение шрифта");
+                                      "Change font");
     if (ok) {
         ui->textEdit->setCurrentFont(font);
     }
@@ -288,7 +282,7 @@ void MainWindow::changeFont()
 void MainWindow::changeColor()
 {
     QColor color = QColorDialog::getColor(ui->textEdit->textColor(), this,
-                                          "Изменение цвета");
+                                          "Change color");
     if (color.isValid()) {
         ui->textEdit->setTextColor(color);
     }
@@ -317,7 +311,7 @@ void MainWindow::indentText()
 {
     bool ok = false;
     int count = QInputDialog::getInt(
-        this, tr("Отступ"), tr("Размер отступа:"), 4, 0, 100, 1, &ok);
+        this, tr("Indent"), tr("Indent size:"), 4, 0, 100, 1, &ok);
     if (!ok || count == 0)
         return;
     QString indent(count, QChar(' '));
