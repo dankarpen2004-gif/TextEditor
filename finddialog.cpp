@@ -16,7 +16,7 @@ FindDialog::~FindDialog()
 void FindDialog::on_pushButtonNext_clicked()
 {
     QTextDocument::FindFlags flags;
-    if (!ui->checkBoxCase->isChecked())
+    if (ui->checkBoxCase->isChecked())
         flags |= QTextDocument::FindCaseSensitively;
     if (ui->radioUp->isChecked())
         flags |= QTextDocument::FindBackward;
